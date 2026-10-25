@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EE",
+    "ES",
+    " S"
+  ],
+  "key": {
+    "E": "minecraft:emerald",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "emeraldtools:emerald_axe",
+    "count": 1
+  }
+}
