@@ -6,10 +6,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ToolMaterial;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 
 public class ModItems {
 
@@ -44,19 +44,39 @@ public class ModItems {
 	}
 
 	public static void register() {
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(
-				output -> {
-					output.accept(EMERALD_SWORD);
-					output.accept(EMERALD_PICKAXE);
-					output.accept(EMERALD_AXE);
-					output.accept(EMERALD_SHOVEL);
-					output.accept(EMERALD_HOE);
-				});
+		addToCreativeTabs();
+	}
 
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT).register(
-				output -> {
-					output.accept(EMERALD_SWORD);
-					output.accept(EMERALD_AXE);
-				});
+	@SuppressWarnings("unchecked")
+	private static void addToCreativeTabs() {
+		try {
+			// Use reflection so the mod still loads without Fabric API installed
+			Class<?> eventsClass = Class.forName("net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents");
+
+			Object toolsEvent = eventsClass
+					.getMethod("modifyOutputEvent", net.minecraft.resources.ResourceKey.class)
+					.invoke(null, CreativeModeTabs.TOOLS_AND_UTILITIES);
+			toolsEvent.getClass().getMethod("register", Object.class).invoke(toolsEvent,
+					(java.util.function.Consumer<CreativeModeTab.Output>) output -> {
+						output.accept(EMERALD_SWORD);
+						output.accept(EMERALD_PICKAXE);
+						output.accept(EMERALD_AXE);
+						output.accept(EMERALD_SHOVEL);
+						output.accept(EMERALD_HOE);
+					});
+
+			Object combatEvent = eventsClass
+					.getMethod("modifyOutputEvent", net.minecraft.resources.ResourceKey.class)
+					.invoke(null, CreativeModeTabs.COMBAT);
+			combatEvent.getClass().getMethod("register", Object.class).invoke(combatEvent,
+					(java.util.function.Consumer<CreativeModeTab.Output>) output -> {
+						output.accept(EMERALD_SWORD);
+						output.accept(EMERALD_AXE);
+					});
+		} catch (ClassNotFoundException e) {
+			EmeraldToolsMod.LOGGER.info("Fabric API not found; items are obtainable via /give command.");
+		} catch (Exception e) {
+			EmeraldToolsMod.LOGGER.warn("Could not add items to creative tabs: {}", e.toString());
+		}
 	}
 }
