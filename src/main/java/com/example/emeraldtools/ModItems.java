@@ -4,6 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -25,22 +26,25 @@ public class ModItems {
 	);
 
 	public static final Item EMERALD_SWORD = register("emerald_sword",
-			new Item(new Item.Properties().sword(EMERALD_MATERIAL, 3.0F, -2.4F)));
+			props -> new Item(props.sword(EMERALD_MATERIAL, 3.0F, -2.4F)));
 
 	public static final Item EMERALD_PICKAXE = register("emerald_pickaxe",
-			new Item(new Item.Properties().pickaxe(EMERALD_MATERIAL, 1.0F, -2.8F)));
+			props -> new Item(props.pickaxe(EMERALD_MATERIAL, 1.0F, -2.8F)));
 
 	public static final Item EMERALD_AXE = register("emerald_axe",
-			new Item(new Item.Properties().axe(EMERALD_MATERIAL, 5.0F, -3.0F)));
+			props -> new Item(props.axe(EMERALD_MATERIAL, 5.0F, -3.0F)));
 
 	public static final Item EMERALD_SHOVEL = register("emerald_shovel",
-			new Item(new Item.Properties().shovel(EMERALD_MATERIAL, 1.5F, -3.0F)));
+			props -> new Item(props.shovel(EMERALD_MATERIAL, 1.5F, -3.0F)));
 
 	public static final Item EMERALD_HOE = register("emerald_hoe",
-			new Item(new Item.Properties().hoe(EMERALD_MATERIAL, 0.0F, -4.0F)));
+			props -> new Item(props.hoe(EMERALD_MATERIAL, 0.0F, -4.0F)));
 
-	private static Item register(String name, Item item) {
-		return Registry.register(BuiltInRegistries.ITEM, EmeraldToolsMod.id(name), item);
+	private static Item register(String name, java.util.function.Function<Item.Properties, Item> factory) {
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, EmeraldToolsMod.id(name));
+		Item.Properties props = new Item.Properties().setId(key);
+		Item item = factory.apply(props);
+		return Registry.register(BuiltInRegistries.ITEM, key, item);
 	}
 
 	public static void register() {
@@ -50,11 +54,10 @@ public class ModItems {
 	@SuppressWarnings("unchecked")
 	private static void addToCreativeTabs() {
 		try {
-			// Use reflection so the mod still loads without Fabric API installed
 			Class<?> eventsClass = Class.forName("net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents");
 
 			Object toolsEvent = eventsClass
-					.getMethod("modifyOutputEvent", net.minecraft.resources.ResourceKey.class)
+					.getMethod("modifyOutputEvent", ResourceKey.class)
 					.invoke(null, CreativeModeTabs.TOOLS_AND_UTILITIES);
 			toolsEvent.getClass().getMethod("register", Object.class).invoke(toolsEvent,
 					(java.util.function.Consumer<CreativeModeTab.Output>) output -> {
@@ -66,7 +69,7 @@ public class ModItems {
 					});
 
 			Object combatEvent = eventsClass
-					.getMethod("modifyOutputEvent", net.minecraft.resources.ResourceKey.class)
+					.getMethod("modifyOutputEvent", ResourceKey.class)
 					.invoke(null, CreativeModeTabs.COMBAT);
 			combatEvent.getClass().getMethod("register", Object.class).invoke(combatEvent,
 					(java.util.function.Consumer<CreativeModeTab.Output>) output -> {
