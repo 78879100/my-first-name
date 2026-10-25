@@ -1,2 +1,1 @@
-# my-first-name
-Emerald Tools Fabric mod for Minecraft 26.3
+我的第一个我的世界Fabric模组，版本26.3
